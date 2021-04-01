@@ -261,6 +261,20 @@ def createTables():
 
     )
 
+    plan = Table(
+        'meal_plan',meta,
+        Column('planMID',String(10),primary_key = True),
+        Column('Bfast',String(10),ForeignKey('categories.RecID',ondelete='CASCADE'),primary_key=True),
+        Column('lunch',String(10),ForeignKey('categories.RecID',ondelete='CASCADE'),primary_key=True),
+        Column('dinner',String(10),ForeignKey('categories.RecID',ondelete='CASCADE'),primary_key=True)
+    )
+
+    plan_assin = Table(
+        'plan_assignments',meta,
+        Column('AccID',ForeignKey('accounts.AccID',ondelete='CASCADE'),primary_key=True),
+        Column('planMID',ForeignKey('meal_plan.planMID',ondelete='CASCADE'),primary_key=True)
+    )
+
     
     meta.create_all(engine,checkfirst=True)
 

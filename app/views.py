@@ -29,8 +29,17 @@ def home():
 
 @app.route('/about/')
 def about():
-    """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    if session.get('loggedin') == True:
+        user = session['AccID']
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM accounts WHERE AccID = %s', ([user]))
+        account = cursor.fetchone()
+        print(account)
+        return render_template('about.html', account=account)
+    else:
+        flash('Please Login')
+        return redirect(url_for('login'))
+    
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -52,11 +61,13 @@ def login():
             else:
                 flash('Username or Password Incorrect')
                 return redirect(url_for('login'))
-
+            cursor.close()
             flash('Logged In.')
             return redirect(url_for("secure_page"))  # they should be redirected to a secure-page route instead
     return render_template("login.html", form=form)
-
+@app.route('/recipe')
+def recipe():
+    print ()
 @app.route("/secure-page")
 def secure_page():
     return render_template("secure_page.html")
@@ -85,6 +96,7 @@ def register():
         print(id)
         cursor.execute('INSERT INTO accounts (AccID,first_name,last_name,password) VALUES (%s, %s, %s, %s)', ('AC-' + str(id),fname, lname, password,))
         mysql.connection.commit()
+        cursor.close()
         flash('Registration Complete')
         return redirect(url_for('login'))
 
