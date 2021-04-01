@@ -1,6 +1,7 @@
-  
+'''
 from . import db
 from werkzeug.security import generate_password_hash
+import sqlalchemy
 
 class UserProfile(db.Model):
     # You can use this to change the table name. The default convention is to use
@@ -37,4 +38,4 @@ class UserProfile(db.Model):
             return str(self.id)  # python 3 support
 
     def __repr__(self):
-        return '<User %r>' % (self.username)
+        return '<User %r>' % (self.username)'''

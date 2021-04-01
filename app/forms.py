@@ -4,5 +4,10 @@ from wtforms.validators import InputRequired
 
 
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[InputRequired()])
+    username = StringField('Account Number', validators=[InputRequired()])
+    password = PasswordField('Password', validators=[InputRequired()])
+
+class Register(FlaskForm):
+    fname = StringField('First Name', validators=[InputRequired()])
+    lname = StringField('Last Name', validators=[InputRequired()])
     password = PasswordField('Password', validators=[InputRequired()])

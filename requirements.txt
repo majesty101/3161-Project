@@ -8,3 +8,9 @@ Pandas
 faker 
 sqlalchemy_utils
 sqlalchemy==1.3.23
+flask_wtf
+mysqlclient
+flask_login
+flask_sqlalchemy
+flask-mysql
+flask_mysqldb

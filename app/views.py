@@ -5,8 +5,16 @@ Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
 
-from app import app
-from flask import render_template, request, redirect, url_for, flash
+from app import app,mysql
+from flask import render_template, request, redirect, url_for, flash,session
+from flask_login import login_user, logout_user, current_user, login_required
+from app.forms import LoginForm, Register
+from flask_mysqldb import MySQL
+#from app.models import UserProfile
+from werkzeug.security import check_password_hash
+import MySQLdb
+
+
 
 
 ###
@@ -23,58 +31,64 @@ def home():
 def about():
     """Render the website's about page."""
     return render_template('about.html', name="Mary Jane")
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
     if request.method == "POST" and form.validate_on_submit():
-        # change this to actually validate the entire form submission
-        # and not just one field
+
         if form.username.data:
-            # Get the username and password values from the form.
+
             username=form.username.data
-
-            
             password=form.password.data
-            # using your model, query database for a user based on the username
-            # and password submitted. Remember you need to compare the password hash.
-            # You will need to import the appropriate function to do so.
-            # Then store the result of that query to a `user` variable so it can be
-            # passed to the login_user() method below.
-            user =UserProfile.query.filter_by(username=username).first()
-            if user is not None and check_password_hash(user.password, password):
-                remember_me = False
+            print(username,password)
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('SELECT * FROM accounts WHERE AccID = %s AND password = %s', (username, password,))
+            user = cursor.fetchone()
 
-                if 'remember_me' in request.form:
-                    remember_me = True
+            if user is not None:
+                session['loggedin'] = True
+                session['AccID'] = user['AccID']
             else:
                 flash('Username or Password Incorrect')
                 return redirect(url_for('login'))
-            # get user id, load into session
-            login_user(user)
 
-            # remember to flash a message to the user
             flash('Logged In.')
             return redirect(url_for("secure_page"))  # they should be redirected to a secure-page route instead
     return render_template("login.html", form=form)
 
 @app.route("/secure-page")
-@login_required
 def secure_page():
     return render_template("secure_page.html")
 
 
 @app.route("/logout")
-@login_required
 def logout():
-    logout_user()
-    flash('You have logged out.', 'danger')
-    return redirect(url_for('home'))
 
-# user_loader callback. This callback is used to reload the user object from
-# the user ID stored in the session
-@login_manager.user_loader
-def load_user(id):
-    return UserProfile.query.get(int(id))
+    session.pop('loggedin', None)
+    session.pop('id', None)
+    session.pop('username', None)
+    return redirect(url_for('login'))
+
+@app.route("/register",methods=['GET', 'POST'])
+def register():
+    form = Register()
+    if request.method == 'POST' and form.validate_on_submit():
+        fname = request.form['fname']
+        lname = request.form['lname']
+        password = request.form['password']
+          # Check if account exists using MySQL
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('Select AccID from accounts order by length(AccID) DESC,AccID Desc Limit 1')
+        lastid = cursor.fetchone().get("AccID").split('-')[1]
+        id =  int(lastid) + 1 
+        print(id)
+        cursor.execute('INSERT INTO accounts (AccID,first_name,last_name,password) VALUES (%s, %s, %s, %s)', ('AC-' + str(id),fname, lname, password,))
+        mysql.connection.commit()
+        flash('Registration Complete')
+        return redirect(url_for('login'))
+
+    return render_template('register.html',form=form)
 
 ###
 # The functions below should be applicable to all Flask apps.
