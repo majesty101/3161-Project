@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 
 {% block main %}
-<h1>About</h1>
-<p>This webpage is about {{ name }}.</p>
+<h1>My Account</h1>
+<p>My Account details</p>
+{%for key, value in account.items()%}
+
+<p>{{key}} : {{value}}</p>
+
+
+{% endfor %}
+<a href="mealplan.html"><input type="button" class="btn" value="Meal Plan"/></a>
+
 {% endblock %}
+
