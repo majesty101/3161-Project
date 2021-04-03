@@ -7,12 +7,12 @@ This file creates your application.
 
 from app import app,mysql
 from flask import render_template, request, redirect, url_for, flash,session
-from flask_login import login_user, logout_user, current_user, login_required
 from app.forms import LoginForm, Register
 from flask_mysqldb import MySQL
 
-from werkzeug.security import check_password_hash
 import MySQLdb
+from flask.helpers import send_from_directory
+import os
 
 
 
@@ -111,18 +111,29 @@ def userPlans():
             cursor.execute('Select title,RecID from recipes where RecID = %s',([plan['dinner']]))
             Drec= cursor.fetchone()
             meals.append([plan['planMID'],Brec,Lrec,Drec])
+        cursor.close()
         return render_template('userPlan.html',meals = meals)
+    cursor.close()
     return render_template('userPlan.html',meals=None)
 
-@app.route('/recipe/<ID>')
-def meals(ID):
-    return None
+@app.route('/recipe/<id>')
+def recipe(id):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('Select * from recipes where RecID=%s',([id]))
+    recipe = cursor.fetchone()
+    cursor.execute('Select * from recipe_description where DescID =%s',([recipe['DescID']]))
+    desc = cursor.fetchone()['Desc']
+    image = 'placeholder.png'
+    return render_template('recipe.html',recipe=recipe,desc=desc,image=image)
     #When a plan is selected display the plan details
 
 @app.route("/secure-page")
 def secure_page():
     return render_template("secure_page.html")
-
+@app.route('/uploads/<filename>')
+def get_image(filename):
+    root_dir = os.getcwd()
+    return send_from_directory(os.path.join(root_dir,app.config['UPLOAD_FOLDER']),filename)
 
 @app.route("/logout")
 def logout():

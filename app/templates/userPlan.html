@@ -16,19 +16,19 @@
         <div>
             <p>Breakfast: {{plan[1]['title']}}</p>
             <div>
-                <a href="{{ url_for('createMealPlan') }}"><input type="button" class="btn" value="View Recipe"/></a>
+                <a href="{{ url_for('recipe',id=plan[1]['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
             </div>
         </div>
         <div>
             <p>Lunch: {{plan[2]['title']}}</p>
             <div>
-                <a href="{{ url_for('createMealPlan') }}"><input type="button" class="btn" value="View Recipe"/></a>
+                <a href="{{ url_for('recipe',id=plan[2]['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
             </div>
         </div>
         <div>
             <p>Dinner: {{plan[3]['title']}}</p>
             <div>
-                <a href="{{ url_for('createMealPlan') }}"><input type="button" class="btn" value="View Recipe"/></a>
+                <a href="{{ url_for('recipe',id=plan[3]['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
             </div>
         </div>
     </div>

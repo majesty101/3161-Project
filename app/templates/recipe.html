@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div>
+    <div>
+        <img src="{{url_for('get_image',filename=image)}}" alt="">
+    </div>
+    <div>
+        <h1>{{recipe['title']}}</h1>
+        <p>Calories: {{recipe['calories']}}</p>
+        <p>Prep Time: {{recipe['prepTime']}} min</p>
+    </div>
+    <div>
+        <p>{{desc}}</p>
+        <p>Added {{recipe['dateAdded']}}</p>
+    </div>
+    <button type="submit" name="submit">Upload Image</button>
+</div>
+
+{% endblock %}

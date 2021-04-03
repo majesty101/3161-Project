@@ -234,12 +234,21 @@ def createTables():
         Column('category',String(20),primary_key=True)
     )
 
+    image = Table(
+        'image',meta,
+        Column('ImgID',String(10),primary_key=True),
+        Column('mealID',String(10),ForeignKey('meals.mealID',ondelete='CASCADE'))
+    )
+
     meal = Table(
         'meals',meta,
         Column('mealID',String(10),primary_key=True),
-        Column('mealNa',String(20)),
-        Column('mealImg',String(225))
+        Column('title',String(20)),
+        Column('servings',Integer()),
+        Column('ImgID',String(10),ForeignKey('image.ImgID',ondelete='CASCADE'))
     )
+
+
 
     recIn = Table(
         'instrut',meta,
