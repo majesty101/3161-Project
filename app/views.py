@@ -150,6 +150,8 @@ def register():
         fname = request.form['fname']
         lname = request.form['lname']
         password = request.form['password']
+        allergies = form.allergies.data
+        
           # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('Select AccID from accounts order by length(AccID) DESC,AccID Desc Limit 1')
@@ -157,6 +159,11 @@ def register():
         id =  int(lastid) + 1 
         print(id)
         cursor.execute('INSERT INTO accounts (AccID,first_name,last_name,password) VALUES (%s, %s, %s, %s)', ('AC-' + str(id),fname, lname, password,))
+        for key, value in allergies.items():
+            if value == True:
+                AllID = key.split('_')[1]
+                print(AllID)
+                cursor.execute('Insert into user_allergies values (%s,%s)',('AC-' + str(id),"AL-" + str(AllID)))
         mysql.connection.commit()
         cursor.close()
         flash('Registration Complete ID is: AC-' + str(id))
