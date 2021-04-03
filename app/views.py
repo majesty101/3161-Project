@@ -10,7 +10,7 @@ from flask import render_template, request, redirect, url_for, flash,session
 from flask_login import login_user, logout_user, current_user, login_required
 from app.forms import LoginForm, Register
 from flask_mysqldb import MySQL
-#from app.models import UserProfile
+
 from werkzeug.security import check_password_hash
 import MySQLdb
 
@@ -50,10 +50,10 @@ def login():
 
             username=form.username.data
             password=form.password.data
-            print(username,password)
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('SELECT * FROM accounts WHERE AccID = %s AND password = %s', (username, password,))
             user = cursor.fetchone()
+
 
             if user is not None:
                 session['loggedin'] = True
@@ -65,9 +65,60 @@ def login():
             flash('Logged In.')
             return redirect(url_for("secure_page"))  # they should be redirected to a secure-page route instead
     return render_template("login.html", form=form)
-@app.route('/recipe')
-def recipe():
-    print ()
+
+
+
+@app.route('/createMealPlan')
+def createMealPlan():
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Breakfast" order by rand() limit 1')
+    breakfast = cursor.fetchone()
+    cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Lunch" order by rand() limit 1')
+    lunch = cursor.fetchone()
+    cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Dinner" order by rand() limit 1')
+    dinner = cursor.fetchone()
+
+    # create meal plan and then assign meal to current user
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('Select planMID from meal_plan order by length(planMID) DESC,planMID Desc Limit 1')
+    lastid = cursor.fetchone()
+    if lastid == None:
+        id = 'MP-1'
+    else:
+        id = 'MP-' + str(int(lastid.get("planMID").split('-')[1]) +1 )
+
+    cursor.execute('Insert into meal_plan values (%s,%s,%s,%s)',(id,breakfast['recID'],lunch['recID'],dinner['recID']))
+    cursor.execute('Insert into plan_assignments values (%s,%s)',(session['AccID'],id))
+    mysql.connection.commit()
+    cursor.close()
+
+    flash('Meal Plan Created')
+    return redirect(url_for('userPlans'))
+
+
+@app.route('/userPlans')
+def userPlans():
+    meals = []
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('Select p.planMID, m.Bfast, m.lunch, m.dinner from plan_assignments as p join meal_plan as m on p.planMID = m.planMID where p.AccID = %s',([session['AccID']]))
+    plans = cursor.fetchall()
+    if plans is not None:
+        for plan in plans:
+            cursor.execute('Select title,RecID from recipes where RecID = %s',([plan['Bfast']]))
+            Brec = cursor.fetchone()
+            cursor.execute('Select title,RecID from recipes where RecID = %s',([plan['lunch']]))
+            Lrec = cursor.fetchone()
+            cursor.execute('Select title,RecID from recipes where RecID = %s',([plan['dinner']]))
+            Drec= cursor.fetchone()
+            meals.append([plan['planMID'],Brec,Lrec,Drec])
+        return render_template('userPlan.html',meals = meals)
+    return render_template('userPlan.html',meals=None)
+
+@app.route('/recipe/<ID>')
+def meals(ID):
+    return None
+    #When a plan is selected display the plan details
+
 @app.route("/secure-page")
 def secure_page():
     return render_template("secure_page.html")
@@ -97,7 +148,7 @@ def register():
         cursor.execute('INSERT INTO accounts (AccID,first_name,last_name,password) VALUES (%s, %s, %s, %s)', ('AC-' + str(id),fname, lname, password,))
         mysql.connection.commit()
         cursor.close()
-        flash('Registration Complete')
+        flash('Registration Complete ID is: AC-' + str(id))
         return redirect(url_for('login'))
 
     return render_template('register.html',form=form)
@@ -111,7 +162,7 @@ def register():
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
-            flash(u"Error in the %s field - %s" % (
+            flash("Error in the %s field - %s" % (
                 getattr(form, field).label.text,
                 error
             ), 'danger')

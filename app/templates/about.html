@@ -7,9 +7,8 @@
 
 <p>{{key}} : {{value}}</p>
 
-
 {% endfor %}
-<a href="mealplan.html"><input type="button" class="btn" value="Meal Plan"/></a>
+<a href="{{ url_for('userPlans') }}"><input type="button" class="btn" value="View Meal Plan"/></a>
 
 {% endblock %}
 
