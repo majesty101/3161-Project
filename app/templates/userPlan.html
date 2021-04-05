@@ -13,19 +13,20 @@
 {%for plan in meals %}
     <div>
         <h6>Plan ID: {{plan[0]}}</h6>
-        <div>
+        <div class= "trying1">
             <p>Breakfast: {{plan[1]['title']}}</p>
             <div>
+               
                 <a href="{{ url_for('recipe',id=plan[1]['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
             </div>
         </div>
-        <div>
+        <div class= "trying2">
             <p>Lunch: {{plan[2]['title']}}</p>
             <div>
                 <a href="{{ url_for('recipe',id=plan[2]['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
             </div>
         </div>
-        <div>
+        <div class = "trying3">
             <p>Dinner: {{plan[3]['title']}}</p>
             <div>
                 <a href="{{ url_for('recipe',id=plan[3]['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
