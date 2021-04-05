@@ -1,3 +1,39 @@
 body {
     padding-top: 5rem;
+    background-color:lightgrey;
+}
+
+.trying1{
+    background-color: #ff3300;
+  color: white;
+  border: 2px solid black;
+  margin: 20px;
+  padding: 20px;
+  border-style: none;
+}
+
+.trying2{
+    background-color: #cc0000;
+  color: white;
+  border: 2px solid black;
+  margin: 20px;
+  padding: 20px;
+  border-style: none;
+}
+
+.trying3{
+    background-color: brown;
+  color: white;
+  border: 2px solid black;
+  margin: 20px;
+  padding: 20px;
+  border-style: none;
+}
+
+
+.img{
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+    width: 150px;
 }
