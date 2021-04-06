@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import InputRequired
-from wtforms.fields.simple import BooleanField
-from wtforms.fields.core import FormField
+from wtforms.fields.simple import BooleanField, SubmitField, TextAreaField
+from wtforms.fields.core import FormField, IntegerField
 
 class AllergyForm(FlaskForm):
 
@@ -25,3 +25,19 @@ class Register(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired()])
     allergies = FormField(AllergyForm)
 
+class SearchForm(FlaskForm):
+    search = StringField('Enter Recipe Title')
+    submit = SubmitField("Search")
+
+class RecipeForm(FlaskForm):
+    title = StringField('Enter Recipe Title')
+    cal = StringField('Calories')
+    desc = TextAreaField('Description')
+    prep  = IntegerField('Prep Time')
+    submit = SubmitField("Add Recipe")
+
+class InfoForm(FlaskForm):
+    servings = IntegerField()
+
+class MealPlanForm(FlaskForm):
+    cal = IntegerField('Calories')

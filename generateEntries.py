@@ -20,8 +20,8 @@ Populate Tables
 """
 
 
-NUM_ACC = 1000
-NUM_RECIPE = 1000
+NUM_ACC = 6000
+NUM_RECIPE = 2000
 def fakeAccount():
     fake_data = defaultdict(list)
     for i in range(1,NUM_ACC+1):
@@ -215,15 +215,15 @@ def createTables():
     )
     desc = Table(
         'recipe_description',meta,
-        Column('DescID',String(10),primary_key=True),
+        Column('DescID',String(20),primary_key=True),
         Column('Desc',String(100))
     )
     recipe = Table(
         'recipes',meta,
         Column('RecID',String(10),primary_key=True),
         Column('title',String(50)),
-        Column('calories',String(10)),
-        Column('DescID',String(10),ForeignKey('recipe_description.DescID',ondelete='CASCADE')),
+        Column('calories',Integer),
+        Column('DescID',String(20),ForeignKey('recipe_description.DescID',ondelete='CASCADE')),
         Column('dateAdded',Date()),
         Column('prepTime',String(10)),
     )
@@ -237,7 +237,7 @@ def createTables():
     image = Table(
         'image',meta,
         Column('ImgID',String(10),primary_key=True),
-        Column('mealID',String(10),ForeignKey('meals.mealID',ondelete='CASCADE'))
+        Column('image',String(255))
     )
 
     meal = Table(
@@ -245,15 +245,20 @@ def createTables():
         Column('mealID',String(10),primary_key=True),
         Column('title',String(20)),
         Column('servings',Integer()),
-        Column('ImgID',String(10),ForeignKey('image.ImgID',ondelete='CASCADE'))
+        Column('RecID',String(10),ForeignKey('recipes.RecID',ondelete='CASCADE'))
     )
 
+    meal_img = Table(
+        'meal_image',meta,
+        Column('mealID',String(10),ForeignKey('meals.mealID',ondelete='CASCADE'),primary_key=True ),
+        Column('ImgID',String(10),ForeignKey('image.ImgID',ondelete='CASCADE'),primary_key=True)
+    )
 
 
     recIn = Table(
         'instrut',meta,
-        Column('RecID',String(10),ForeignKey('recipes.RecID',ondelete='CASCADE'),primary_key=True ),
-        Column('InstrID',String(10)),
+        Column('RecID',String(10),ForeignKey('recipes.RecID',ondelete='CASCADE')),
+        Column('InstrID',String(10),primary_key=True),
         Column('IngreQua',String(10))
     )
 
@@ -273,9 +278,9 @@ def createTables():
     plan = Table(
         'meal_plan',meta,
         Column('planMID',String(10),primary_key = True),
-        Column('Bfast',String(10),ForeignKey('categories.RecID',ondelete='CASCADE'),primary_key=True),
-        Column('lunch',String(10),ForeignKey('categories.RecID',ondelete='CASCADE'),primary_key=True),
-        Column('dinner',String(10),ForeignKey('categories.RecID',ondelete='CASCADE'),primary_key=True)
+        Column('Bfast',String(10),ForeignKey('meals.mealID',ondelete='CASCADE'),primary_key=True),
+        Column('lunch',String(10),ForeignKey('meals.mealID',ondelete='CASCADE'),primary_key=True),
+        Column('dinner',String(10),ForeignKey('meals.mealID',ondelete='CASCADE'),primary_key=True)
     )
 
     plan_assin = Table(
@@ -302,10 +307,18 @@ def commit(fake_data,table):
 
 if __name__ == '__main__':
     createDB()
+    print('Database Created')
     createTables()
+    print('Tables Created')
     fakeAccount()
+    print('Accounts Table Populated')
     fakeRecipe()
+    print('Recipe Table Populated')
     generateAllergies()
+    print('allergies Table Populated')
     generateUserAllergies()
+    print('user allergies Table Populated')
     generateCategories()
+    print('categories Table Populated')
     generateIng()
+    print('ing Table Populated')

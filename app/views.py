@@ -7,12 +7,13 @@ This file creates your application.
 
 from app import app,mysql
 from flask import render_template, request, redirect, url_for, flash,session
-from app.forms import LoginForm, Register
+from app.forms import InfoForm, LoginForm, MealPlanForm, RecipeForm, Register, SearchForm
 from flask_mysqldb import MySQL
-
+from datetime import datetime
 import MySQLdb
 from flask.helpers import send_from_directory
 import os
+from time import strptime
 
 
 
@@ -66,35 +67,96 @@ def login():
             return redirect(url_for("secure_page"))  # they should be redirected to a secure-page route instead
     return render_template("login.html", form=form)
 
+@app.route('/viewRecipes',methods=['GET','POST'])
+def viewRecipes():
+    results = None
+    search = SearchForm()
+    if request.method== 'POST':
+        query = search.search.data
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('select r.title, r.calories, rd.Desc, r.RecID from recipes as r join recipe_description as rd on r.DescID = rd.DescID where r.title like %s',(['%' + query + '%']))
+        results = cursor.fetchall()
+        cursor.close()
+    return render_template('viewRecipes.html',search=search,results=results)
+
+@app.route('/addRecipe',methods=['GET','POST'])
+def addRecipe():
+    form = RecipeForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        title = form.title.data
+        desc = form.desc.data
+        prep = form.prep.data
+        cal = form.cal.data
+        date = datetime.today().strftime("%y-%m-%d")
+
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('Select RecID from recipes order by length(RecID) DESC,RecID Desc Limit 1')
+        lastrid = cursor.fetchone()['RecID'].split('-')[1]
+        cursor.execute('Select DescID from recipe_description order by length(DescID) DESC,DescID Desc Limit 1')
+        lastdid = cursor.fetchone()['DescID'].split('-')[1]
 
 
-@app.route('/createMealPlan')
+        cursor.execute('Insert into recipe_description values (%s,%s)', ('DESC-' + str(int(lastdid)+1),desc))
+        cursor.execute('Insert into recipes values (%s,%s,%s,%s,%s,%s)', ('RE-' + str(int(lastrid)+1),title,cal,'DESC-' + str(int(lastdid)+1),date,prep))
+        mysql.connection.commit()
+        flash('Recipe Added')
+        print(cal,date)
+        return redirect(url_for('recipe',id='RE-' + str(int(lastrid)+1)))
+    return render_template('addRecipe.html',form=form)
+
+@app.route('/createMealPlan',methods=['GET','POST'])
 def createMealPlan():
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Breakfast" order by rand() limit 1')
-    breakfast = cursor.fetchone()
-    cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Lunch" order by rand() limit 1')
-    lunch = cursor.fetchone()
-    cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Dinner" order by rand() limit 1')
-    dinner = cursor.fetchone()
+    form = MealPlanForm()
+    if request.method == 'POST':
+        requedCal = form.cal.data
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        if requedCal == None:
+            cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Breakfast" order by rand() limit 1')
+            breakfast = cursor.fetchone()
+            cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Lunch" order by rand() limit 1')
+            lunch = cursor.fetchone()
+            cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Dinner" order by rand() limit 1')
+            dinner = cursor.fetchone()
+        else:
+            cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Breakfast"  and r.calories Between %s and %s order by rand() limit 1',([requedCal-50,requedCal+50]))
+            breakfast = cursor.fetchone()
+            cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Lunch"  and r.calories Between %s and %s order by rand() limit 1',([requedCal-50,requedCal+50]))
+            lunch = cursor.fetchone()
+            cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Dinner"  and r.calories Between %s and %s order by rand() limit 1',([requedCal-50,requedCal+50]))
+            dinner = cursor.fetchone()
+            
+        recepies = [breakfast,lunch,dinner]
+        # create meal plan and then assign meal to current user
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('Select planMID from meal_plan order by length(planMID) DESC,planMID Desc Limit 1')
+        lastid = cursor.fetchone()
+        if lastid == None:
+            id = 'MP-1'
+        else:
+            id = 'MP-' + str(int(lastid.get("planMID").split('-')[1]) +1 )
 
-    # create meal plan and then assign meal to current user
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('Select planMID from meal_plan order by length(planMID) DESC,planMID Desc Limit 1')
-    lastid = cursor.fetchone()
-    if lastid == None:
-        id = 'MP-1'
-    else:
-        id = 'MP-' + str(int(lastid.get("planMID").split('-')[1]) +1 )
+        cursor.execute('Select mealID from meals order by length(mealID) DESC,mealID Desc Limit 1')
+        lastMID = cursor.fetchone()
+        if lastMID == None:
+            Mid = 1
+        else:
+            Mid = int(lastMID.get("mealID").split('-')[1]) +1 
 
-    cursor.execute('Insert into meal_plan values (%s,%s,%s,%s)',(id,breakfast['recID'],lunch['recID'],dinner['recID']))
-    cursor.execute('Insert into plan_assignments values (%s,%s)',(session['AccID'],id))
-    mysql.connection.commit()
-    cursor.close()
+        for i in recepies: 
+            cursor.execute('Insert into meals (mealID,title,RecID) values(%s,%s,%s)',('ME-' + str(Mid),i['title'],i['recID']))
+            Mid +=1
+        mysql.connection.commit()
 
-    flash('Meal Plan Created')
-    return redirect(url_for('userPlans'))
 
+
+        cursor.execute('Insert into meal_plan values (%s,%s,%s,%s)',(id,'ME-' + str(Mid-3),'ME-' + str(Mid-2),'ME-' + str(Mid-1)))
+        cursor.execute('Insert into plan_assignments values (%s,%s)',(session['AccID'],id))
+        mysql.connection.commit()
+        cursor.close()
+
+        flash('Meal Plan Created')
+        return redirect(url_for('userPlans'))
+    return render_template('createPlan.html',form = form)
 
 @app.route('/userPlans')
 def userPlans():
@@ -104,17 +166,33 @@ def userPlans():
     plans = cursor.fetchall()
     if plans is not None:
         for plan in plans:
-            cursor.execute('Select title,RecID from recipes where RecID = %s',([plan['Bfast']]))
+            cursor.execute('Select r.title,r.RecID, m.mealID, m.servings from recipes as r join meals as m on r.RecID = m.RecID where m.mealID = %s',([plan['Bfast']]))
             Brec = cursor.fetchone()
-            cursor.execute('Select title,RecID from recipes where RecID = %s',([plan['lunch']]))
+            print(Brec)
+            cursor.execute('Select r.title,r.RecID, m.mealID, m.servings from recipes as r join meals as m on r.RecID = m.RecID where m.mealID = %s',([plan['lunch']]))
             Lrec = cursor.fetchone()
-            cursor.execute('Select title,RecID from recipes where RecID = %s',([plan['dinner']]))
+            cursor.execute('Select r.title,r.RecID, m.mealID, m.servings from recipes as r join meals as m on r.RecID = m.RecID where m.mealID = %s',([plan['dinner']]))
             Drec= cursor.fetchone()
             meals.append([plan['planMID'],Brec,Lrec,Drec])
         cursor.close()
         return render_template('userPlan.html',meals = meals)
     cursor.close()
     return render_template('userPlan.html',meals=None)
+
+
+@app.route('/addInfo/<id>',methods=['GET','POST'])
+def addInfo(id):
+    print(id)
+    form = InfoForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        servings = form.servings.data
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('Update meals set servings = %s where mealID = %s',(servings,id))
+        mysql.connection.commit()
+        return redirect(url_for('userPlans'))
+    return render_template('addInfo.html',form=form,id=id)
+
+
 
 @app.route('/recipe/<id>')
 def recipe(id):
