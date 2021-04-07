@@ -3,7 +3,7 @@
 {% block main %}
 {% include 'flash_messages.html' %}
 
-<h1>Meal Plans</h1>
+<h1>All Meal Plans</h1>
 <div>
     {% if meals == None %}
     <div>
@@ -54,6 +54,3 @@
 {%endfor%}
 {% endif %}
 </div>
-<a href="{{ url_for('createMealPlan') }}"><input type="button" class="btn" value="Create Meal Plan"/></a>
-<a href="{{ url_for('allMealPlans') }}"><input type="button" class="btn" value="Show All Plans"/></a>
-{% endblock %}

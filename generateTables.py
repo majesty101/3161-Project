@@ -20,8 +20,8 @@ Populate Tables
 """
 
 
-NUM_ACC = 6000
-NUM_RECIPE = 2000
+NUM_ACC = 600
+NUM_RECIPE = 400
 def fakeAccount():
     fake_data = defaultdict(list)
     for i in range(1,NUM_ACC+1):
@@ -35,6 +35,7 @@ def fakeAccount():
 def fakeRecipe():
     desc = defaultdict(list)
     fake_data = defaultdict(list)
+    insc = defaultdict(list)
     for i in range(1,NUM_RECIPE+1):
         fake_data["RecID"].append("RE-" + str(i))
         fake_data["title"].append(fake.word())
@@ -272,6 +273,8 @@ def createTables():
         'ingredients',meta,
         Column('ingID',String(10),primary_key=True),
         Column('name',String(30)),
+        Column('qty',Integer()),
+        Column('unit',Integer())
 
     )
 
@@ -287,6 +290,27 @@ def createTables():
         'plan_assignments',meta,
         Column('AccID',ForeignKey('accounts.AccID',ondelete='CASCADE'),primary_key=True),
         Column('planMID',ForeignKey('meal_plan.planMID',ondelete='CASCADE'),primary_key=True)
+    )
+    plan_cal = Table(
+        'plan_cal',meta,
+        Column('planMID',ForeignKey('meal_plan.planMID',ondelete='CASCADE'),primary_key=True),
+        Column('calories',Integer())
+    )
+
+    qua = Table(
+        'shopping_list',meta,
+        Column('listID',String(10),primary_key=True),
+        Column('ingID',ForeignKey('ingredients.ingID',ondelete='CASCADE')),
+        Column('unit',Integer()),
+        Column('qty',Integer()),
+
+    )
+
+    kitchen_stock = Table(
+        'kitchen_stock',meta,
+        Column('kitchenID', String(10),primary_key = True),
+        Column('ingID',ForeignKey('ingredients.ingID',ondelete='CASCADE'),primary_key=True),
+        Column('amount',Integer())
     )
 
     

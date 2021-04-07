@@ -25,7 +25,7 @@ from time import strptime
 @app.route('/')
 def home():
     """Render website's home page."""
-    return render_template('home.html')
+    return redirect(url_for('login'))
 
 
 @app.route('/about/')
@@ -64,7 +64,7 @@ def login():
                 return redirect(url_for('login'))
             cursor.close()
             flash('Logged In.')
-            return redirect(url_for("secure_page"))  # they should be redirected to a secure-page route instead
+            return redirect(url_for("about"))  # they should be redirected to a secure-page route instead
     return render_template("login.html", form=form)
 
 @app.route('/viewRecipes',methods=['GET','POST'])
@@ -118,11 +118,11 @@ def createMealPlan():
             cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Dinner" order by rand() limit 1')
             dinner = cursor.fetchone()
         else:
-            cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Breakfast"  and r.calories Between %s and %s order by rand() limit 1',([requedCal-50,requedCal+50]))
+            cursor.execute('Call mealswithcalcount(%s,%s)',([requedCal,'Breakfast']))
             breakfast = cursor.fetchone()
-            cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Lunch"  and r.calories Between %s and %s order by rand() limit 1',([requedCal-50,requedCal+50]))
+            cursor.execute('Call mealswithcalcount(%s,%s)',([requedCal,'Lunch']))
             lunch = cursor.fetchone()
-            cursor.execute('select c.recID, category, title, calories, prepTime, dateAdded from categories as c join recipes as r on r.RecID = c.RecID where c.category = "Dinner"  and r.calories Between %s and %s order by rand() limit 1',([requedCal-50,requedCal+50]))
+            cursor.execute('Call mealswithcalcount(%s,%s)',([requedCal,'Dinner']))
             dinner = cursor.fetchone()
             
         recepies = [breakfast,lunch,dinner]
@@ -162,7 +162,7 @@ def createMealPlan():
 def userPlans():
     meals = []
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('Select p.planMID, m.Bfast, m.lunch, m.dinner from plan_assignments as p join meal_plan as m on p.planMID = m.planMID where p.AccID = %s',([session['AccID']]))
+    cursor.execute('Select p.planMID, m.Bfast, m.lunch, m.dinner from plan_assignments as p join meal_plan as m on p.planMID = m.planMID where p.AccID = %s order by length(p.planMID) DESC,p.planMID Desc Limit 1;',([session['AccID']]))
     plans = cursor.fetchall()
     if plans is not None:
         for plan in plans:
@@ -179,6 +179,27 @@ def userPlans():
     cursor.close()
     return render_template('userPlan.html',meals=None)
 
+@app.route('/allMealPlans')
+def allMealPlans():
+    meals = []
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('call usermeals(%s)',([session['AccID']]))
+    plans = cursor.fetchall()
+    if plans is not None:
+        for plan in plans:
+            cursor.execute('Select r.title,r.RecID, m.mealID, m.servings from recipes as r join meals as m on r.RecID = m.RecID where m.mealID = %s',([plan['Bfast']]))
+            Brec = cursor.fetchone()
+            print(Brec)
+            cursor.execute('Select r.title,r.RecID, m.mealID, m.servings from recipes as r join meals as m on r.RecID = m.RecID where m.mealID = %s',([plan['lunch']]))
+            Lrec = cursor.fetchone()
+            cursor.execute('Select r.title,r.RecID, m.mealID, m.servings from recipes as r join meals as m on r.RecID = m.RecID where m.mealID = %s',([plan['dinner']]))
+            Drec= cursor.fetchone()
+            meals.append([plan['planMID'],Brec,Lrec,Drec])
+        cursor.close()
+        return render_template('userPlan.html',meals = meals)
+    cursor.close()
+    return render_template('allPlans',meals=None)
+
 
 @app.route('/addInfo/<id>',methods=['GET','POST'])
 def addInfo(id):
@@ -187,7 +208,7 @@ def addInfo(id):
     if request.method == 'POST' and form.validate_on_submit():
         servings = form.servings.data
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('Update meals set servings = %s where mealID = %s',(servings,id))
+        cursor.execute('call setserving(%s,%s) ',(id,servings))
         mysql.connection.commit()
         return redirect(url_for('userPlans'))
     return render_template('addInfo.html',form=form,id=id)
