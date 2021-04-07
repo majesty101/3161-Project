@@ -25,3 +25,5 @@ class Register(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired()])
     allergies = FormField(AllergyForm)
 
+class PhotoForm(FlaskForm):
+    photo = FileField('Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png', 'Images only!'])])
