@@ -7,13 +7,14 @@ This file creates your application.
 
 from app import app,mysql
 from flask import render_template, request, redirect, url_for, flash,session
-from app.forms import InfoForm, LoginForm, MealPlanForm, RecipeForm, Register, SearchForm
+from app.forms import InfoForm, LoginForm, MealPlanForm, PhotoForm, RecipeForm, Register, SearchForm
 from flask_mysqldb import MySQL
 from datetime import datetime
 import MySQLdb
 from flask.helpers import send_from_directory
 import os
 from time import strptime
+from werkzeug.utils import secure_filename
 
 
 
@@ -25,7 +26,7 @@ from time import strptime
 @app.route('/')
 def home():
     """Render website's home page."""
-    return redirect(url_for('home'))
+    return render_template('secure_page.html')
 
 
 @app.route('/about/')
@@ -213,21 +214,48 @@ def addInfo(id):
         mysql.connection.commit()
         return redirect(url_for('userPlans'))
     return render_template('addInfo.html',form=form,id=id)
+
+
 @app.route('/recipe/<id>', methods= ["GET", "POST"])
 def recipe(id): 
+    photo=PhotoForm()
+    print(request.method)
+    if request.method == 'POST' and photo.validate_on_submit:
+        file = request.files['photo']
+        filename = secure_filename(file.filename)
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('Select ImgID from image order by length(ImgID) DESC,ImgID Desc Limit 1')
+        last_img = cursor.fetchone()
+        cursor.execute('select mealID from meals as m join recipes as r on m.RecID = r.RecID where r.RecID = %s',([id]))
+        mealID = cursor.fetchone()
+        print(mealID)
+        if last_img == None:
+            imgID = 'IMG-1'
+        else:
+            last = int(last_img['ImgID'].split('-')[1])
+            imgID = 'IMG-' + str(last+1)
+        
+        cursor.execute('Insert into image values(%s,%s)',(imgID,filename))
+        cursor.execute('Insert into meal_image values(%s,%s)',(mealID['mealID'],imgID))
+        mysql.connection.commit()
+        cursor.close()
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('Select * from recipes where RecID=%s',([id]))
     recipe = cursor.fetchone()
     cursor.execute('Select * from recipe_description where DescID =%s',([recipe['DescID']]))
     desc = cursor.fetchone()['Desc']
-    filename = 'placeholder.png'
+    cursor.execute('select mealID from meals as m join recipes as r on m.RecID = r.RecID where r.RecID = %s',([id]))
+    mealID = cursor.fetchone()['mealID']
+    cursor.execute('select image from image as i join meal_image as mi on i.ImgID = mi.ImgID where mi.mealID = %s order by length(mi.ImgID) DESC,mi.ImgID Desc Limit 1 ',([mealID]))
+    img = cursor.fetchone()
+    if img == None:
+        filename = 'placeholder.png'
+    else:
+        filename = img['image']
 
-    photo=PhotoForm()
-    if request.method == 'POST' and photo.validate_on_submit():
-        photo = request.files['photo']
-
-        filename = secure_filename(photo.filename)
-        photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+ 
 
     return render_template('recipe.html',recipe=recipe,desc=desc, form=photo, filename=filename)
     #When a plan is selected display the plan details

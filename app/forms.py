@@ -1,9 +1,9 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import InputRequired
-from wtforms.fields.simple import BooleanField, SubmitField, TextAreaField
+from wtforms.fields.simple import BooleanField,SubmitField, TextAreaField
 from wtforms.fields.core import FormField, IntegerField
-
+from flask_wtf.file import FileField,FileAllowed,FileRequired
 class AllergyForm(FlaskForm):
 
     
@@ -14,6 +14,10 @@ class AllergyForm(FlaskForm):
     A_5 = BooleanField("Soy")
     A_7 = BooleanField("Gluten")
     A_9= BooleanField("Seafood")
+   
+class PhotoForm(FlaskForm):
+    photo = FileField('Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png','jpeg', 'Images only!'])])
+
 
 class LoginForm(FlaskForm):
     username = StringField('Account Number', validators=[InputRequired()])
@@ -40,7 +44,4 @@ class InfoForm(FlaskForm):
 
 class MealPlanForm(FlaskForm):
     cal = IntegerField('Calories')
-=======
-class PhotoForm(FlaskForm):
-    photo = FileField('Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png', 'Images only!'])])
 
