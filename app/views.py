@@ -179,6 +179,7 @@ def userPlans():
     cursor.close()
     return render_template('userPlan.html',meals=None)
 
+
 @app.route('/allMealPlans')
 def allMealPlans():
     meals = []
@@ -212,18 +213,23 @@ def addInfo(id):
         mysql.connection.commit()
         return redirect(url_for('userPlans'))
     return render_template('addInfo.html',form=form,id=id)
-
-
-
-@app.route('/recipe/<id>')
-def recipe(id):
+@app.route('/recipe/<id>', methods= ["GET", "POST"])
+def recipe(id): 
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('Select * from recipes where RecID=%s',([id]))
     recipe = cursor.fetchone()
     cursor.execute('Select * from recipe_description where DescID =%s',([recipe['DescID']]))
     desc = cursor.fetchone()['Desc']
-    image = 'placeholder.png'
-    return render_template('recipe.html',recipe=recipe,desc=desc,image=image)
+    filename = 'placeholder.png'
+
+    photo=PhotoForm()
+    if request.method == 'POST' and photo.validate_on_submit():
+        photo = request.files['photo']
+
+        filename = secure_filename(photo.filename)
+        photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    return render_template('recipe.html',recipe=recipe,desc=desc, form=photo, filename=filename)
     #When a plan is selected display the plan details
 
 @app.route("/secure-page")

@@ -24,7 +24,6 @@ class Register(FlaskForm):
     lname = StringField('Last Name', validators=[InputRequired()])
     password = PasswordField('Password', validators=[InputRequired()])
     allergies = FormField(AllergyForm)
-
 class SearchForm(FlaskForm):
     search = StringField('Enter Recipe Title')
     submit = SubmitField("Search")
@@ -41,3 +40,7 @@ class InfoForm(FlaskForm):
 
 class MealPlanForm(FlaskForm):
     cal = IntegerField('Calories')
+=======
+class PhotoForm(FlaskForm):
+    photo = FileField('Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png', 'Images only!'])])
+
