@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
 {% block main %}
-<div>
+
+<div class="form">
+    <form action="{{url_for('recipe', id=recipe['RecID'])}}" method="Post">
+        {{ form.csrf_token }}
     <div>
-        <img src="{{url_for('get_image',filename=image)}}" alt="">
+        <img src="{{url_for('get_image',filename=photo)}}" alt="">
     </div>
     <div>
         <h1>{{recipe['title']}}</h1>
@@ -14,7 +17,14 @@
         <p>{{desc}}</p>
         <p>Added {{recipe['dateAdded']}}</p>
     </div>
-    <button type="submit" name="submit">Upload Image</button>
+
+    <div class="form-group">
+        {{ form.photo.label }}
+        {{ form.photo(class="form-control") }}
+    </div>
+
+    <button type="submit" name="submit" class="btn btn-primary btn-block">Submit</button>
+</form>
 </div>
 
 {% endblock %}
