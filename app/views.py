@@ -25,7 +25,7 @@ from time import strptime
 @app.route('/')
 def home():
     """Render website's home page."""
-    return redirect(url_for('login'))
+    return redirect(url_for('home'))
 
 
 @app.route('/about/')
@@ -64,7 +64,7 @@ def login():
                 return redirect(url_for('login'))
             cursor.close()
             flash('Logged In.')
-            return redirect(url_for("about"))  # they should be redirected to a secure-page route instead
+            return render_template("secure_page.html")  # they should be redirected to a secure-page route instead
     return render_template("login.html", form=form)
 
 @app.route('/viewRecipes',methods=['GET','POST'])
