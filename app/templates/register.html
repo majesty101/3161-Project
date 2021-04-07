@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block main %}
+{% include 'flash_messages.html' %}
+
+<h1>Register</h1>
+<div class="register-form center-block">
+    {% include 'flash_messages.html' %}
+    <form action="{{ url_for('register') }}" method="post">
+      {{ form.csrf_token }}
+      <div class="form-group">
+        {{ form.fname.label }}
+        {{ form.fname(class='form-control', placeholder="Enter your first name") }}
+      </div>
+      <div class="form-group">
+        {{ form.lname.label }}
+        {{ form.lname(class='form-control', placeholder="Enter your last name") }}
+      </div>
+      <div class="form-group">
+        {{ form.password.label }}
+        {{ form.password(class='form-control', placeholder="Enter password") }}
+      </div>
+      <div class="form-group">
+        {{ form.allergies.label }}
+        {{ form.allergies }}
+      </div>
+      <button type="submit" name="submit" class="btn btn-primary btn-block">Register</button>
+    </form>
+  </div>
+{% endblock %}

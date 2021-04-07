@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block main %}
+{% include 'flash_messages.html' %}
+<div>
+    <form action="{{ url_for('viewRecipes') }}" method="POST">
+        <div>
+            {{search.search.label}}
+            {{search.search}}
+            {{search.submit}}
+        </div>
+    </form>
+    <div>
+        {% if results != None %}
+        {% for row in results %}
+        <div>
+            <h5>{{row['title']}}</h5>
+            <p>{{row['Desc']}}</p>
+            <p>{{row['calories']}}</p>
+            <a href="{{ url_for('recipe',id=row['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>No Recipe Found</p>
+        {%endif%}
+    </div>
+
+</div>
+
+{% endblock %}

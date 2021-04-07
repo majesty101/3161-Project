@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block main %}
+{% include 'flash_messages.html' %}
+
+<h1>Add Meal Info</h1>
+<div class="register-form center-block">
+    {% include 'flash_messages.html' %}
+    <form action="{{ url_for('addInfo',id=id) }}" method="POST">
+      {{ form.csrf_token }}
+      <div class="form-group">
+        {{ form.servings.label }}
+        {{ form.servings(class='form-control') }}
+      </div>
+      </div>
+      <button type="submit" name="submit" class="btn btn-primary btn-block">Register</button>
+    </form>
+  </div>
+{% endblock %}

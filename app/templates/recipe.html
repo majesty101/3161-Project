@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div class="form">
+    <form action="{{url_for('recipe', id=recipe['RecID'])}}" method="POST" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+    <div>
+        <img src="{{url_for('get_image',filename=filename)}}" alt="">
+    </div>
+    <div>
+        <h1>{{recipe['title']}}</h1>
+        <p>Calories: {{recipe['calories']}}</p>
+        <p>Prep Time: {{recipe['prepTime']}} min</p>
+    </div>
+    <div>
+        <p>{{desc}}</p>
+        <p>Added {{recipe['dateAdded']}}</p>
+    </div>
+
+    <div class="form-group">
+        {{ form.photo(class="form-control") }}
+    </div>
+
+    <button type="submit" name="submit" class="btn btn-primary btn-block">Submit</button>
+</form>
+</div>
+
+{% endblock %}

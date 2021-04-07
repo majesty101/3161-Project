@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h1>My Account</h1>
+<p>My Account details</p>
+{%for key, value in account.items()%}
+
+<p>{{key}} : {{value}}</p>
+
+{% endfor %}
+
+<a href="{{ url_for('userPlans') }}"><input type="button" class="btn" value="View Meal Plan"/></a>
+
+<img src="{{ url_for('static', filename='breakfast.jpg' ) }}" alt="people eating" style="height: 250px; width: 200px; display: block; margin-left: auto; margin-right: auto; width: 50%; ">
+
+{% endblock %}
+

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block main %}
+{% include 'flash_messages.html' %}
+
+<h1>Meal Plans</h1>
+<div>
+    {% if meals == None %}
+    <div>
+        <p>No meal plans have been assigned to this account</p>
+    </div>
+{% else %}
+{%for plan in meals %}
+    <div>
+        <h6>Plan ID: {{plan[0]}}</h6>
+        <div class= "trying1">
+            <p>Breakfast: {{plan[1]['title']}}</p>
+            <div>
+               
+                <a href="{{ url_for('recipe',id=plan[1]['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
+                <a href="{{ url_for('addInfo',id=plan[1]['mealID']) }}"><input type="button" class="btn" value="Add Servings"/></a>
+                {% if plan[1]['servings'] != None %}
+                <p>Number of Servings: {{plan[1]['servings']}}</p>
+                {% else %}
+                <p>No Servings added</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class= "trying2">
+            <p>Lunch: {{plan[2]['title']}}</p>
+            <div>
+                <a href="{{ url_for('recipe',id=plan[2]['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
+                <a href="{{ url_for('addInfo',id=plan[2]['mealID']) }}"><input type="button" class="btn" value="Add Servings"/></a>
+                {% if plan[2]['servings'] != None %}
+                <p>Number of Servings: {{plan[2]['servings']}}</p>
+                {% else %}
+                <p>No Servings added</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class = "trying3">
+            <p>Dinner: {{plan[3]['title']}}</p>
+            <div>
+                <a href="{{ url_for('recipe',id=plan[3]['RecID']) }}"><input type="button" class="btn" value="View Recipe"/></a>
+                <a href="{{ url_for('addInfo',id=plan[3]['mealID']) }}"><input type="button" class="btn" value="Add Servings"/></a>
+                {% if plan[3]['servings'] != None %}
+                <p>Number of Servings: {{plan[3]['servings']}}</p>
+                {% else %}
+                <p>No Servings added</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{%endfor%}
+{% endif %}
+</div>
+<a href="{{ url_for('createMealPlan') }}"><input type="button" class="btn" value="Create Meal Plan"/></a>
+<a href="{{ url_for('allMealPlans') }}"><input type="button" class="btn" value="Show All Plans"/></a>
+{% endblock %}
